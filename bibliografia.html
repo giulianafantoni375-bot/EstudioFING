@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EstudioFING — Bibliografía</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav id="sidebar"></nav>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Bibliografía</div>
+        <div class="topbar-sub">Libros y PDFs organizados por materia</div>
+      </div>
+      <div class="topbar-right">
+        <span class="date-badge" id="current-date"></span>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Tabs por materia -->
+      <div class="bib-tabs" id="bib-tabs"></div>
+
+      <!-- Buscador -->
+      <div style="margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Buscar por título, autor...">
+        </div>
+        <div class="filter-tabs" id="tipo-tabs">
+          <button class="filter-tab active" data-tipo="todos">Todos</button>
+          <button class="filter-tab" data-tipo="libro">📖 Libros</button>
+          <button class="filter-tab" data-tipo="pdf">📄 PDFs</button>
+        </div>
+        <span id="bib-count" style="margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:500"></span>
+      </div>
+
+      <div class="bib-grid" id="bib-grid"></div>
+    </div>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    renderSidebar('bibliografia');
+    document.getElementById('current-date').textContent =
+      new Date().toLocaleDateString('es-UY', { day:'2-digit', month:'short', year:'numeric' });
+
+    const tipoIcons = { libro: '📖', pdf: '📄', articulo: '📰', apunte: '📝' };
+
+    let activeMateriaId = 'todas';
+    let activeTipo      = 'todos';
+    let searchTerm      = '';
+
+    // Tabs de materias
+    const tabsEl = document.getElementById('bib-tabs');
+    const allTab = document.createElement('button');
+    allTab.className = 'bib-tab active';
+    allTab.dataset.materia = 'todas';
+    allTab.textContent = 'Todas';
+    allTab.style.setProperty('--tab-color', '#475569');
+    tabsEl.appendChild(allTab);
+
+    DATA.materias.forEach(m => {
+      const btn = document.createElement('button');
+      btn.className = 'bib-tab';
+      btn.dataset.materia = m.id;
+      btn.textContent = m.abrev;
+      btn.style.setProperty('--tab-color', m.color);
+      tabsEl.appendChild(btn);
+    });
+
+    tabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('.bib-tab');
+      if (!btn) return;
+      tabsEl.querySelectorAll('.bib-tab').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = '';
+        b.style.color = '';
+        b.style.borderColor = '';
+      });
+      btn.classList.add('active');
+      const materia = DATA.materias.find(m => m.id === btn.dataset.materia);
+      if (materia) {
+        btn.style.background = materia.color;
+        btn.style.color = '#fff';
+        btn.style.borderColor = materia.color;
+      } else {
+        btn.style.background = '#475569';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#475569';
+      }
+      activeMateriaId = btn.dataset.materia;
+      renderGrid();
+    });
+
+    // Activar el primer tab visualmente
+    allTab.style.background = '#475569';
+    allTab.style.color = '#fff';
+    allTab.style.borderColor = '#475569';
+
+    // Tipo tabs
+    document.getElementById('tipo-tabs').addEventListener('click', e => {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      document.querySelectorAll('#tipo-tabs .filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeTipo = btn.dataset.tipo;
+      renderGrid();
+    });
+
+    document.getElementById('search-input').addEventListener('input', function() {
+      searchTerm = this.value.trim().toLowerCase();
+      renderGrid();
+    });
+
+    function renderGrid() {
+      const items = getBibliografiaAll().filter(b => {
+        if (activeMateriaId !== 'todas' && b.materiaId !== activeMateriaId) return false;
+        if (activeTipo !== 'todos' && b.tipo !== activeTipo) return false;
+        if (searchTerm) {
+          return b.titulo.toLowerCase().includes(searchTerm)
+            || (b.autor||'').toLowerCase().includes(searchTerm)
+            || (b.descripcion||'').toLowerCase().includes(searchTerm);
+        }
+        return true;
+      });
+
+      document.getElementById('bib-count').textContent =
+        `${items.length} recurso${items.length !== 1 ? 's' : ''}`;
+
+      const grid = document.getElementById('bib-grid');
+
+      if (!items.length) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-title">Sin resultados</div>
+            <div class="empty-state-text">Probá con otros filtros o términos de búsqueda.</div>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(b => {
+        const icon = tipoIcons[b.tipo] || '📄';
+        const tipoLabel = b.tipo.charAt(0).toUpperCase() + b.tipo.slice(1);
+        const hasUrl = b.url && b.url.trim() !== '';
+
+        return `
+          <div class="bib-card" style="--card-color:${b.materiaColor}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div class="bib-type-icon" style="background:${b.materiaColor}15;color:${b.materiaColor}">${icon}</div>
+              <div style="display:flex;gap:6px;align-items:center">
+                <span class="badge" style="background:${b.materiaColor}15;color:${b.materiaColor}">${b.materiaNombre}</span>
+                <span class="badge" style="background:#f1f5f9;color:#475569">${tipoLabel}</span>
+              </div>
+            </div>
+            <div class="bib-titulo">${b.titulo}</div>
+            <div class="bib-autor">${b.autor || ''}${b.edicion ? ' · ' + b.edicion : ''}</div>
+            <div class="bib-desc">${b.descripcion || ''}</div>
+            <div class="bib-footer">
+              ${hasUrl
+                ? `<a href="${b.url}" target="_blank" class="btn btn-sm" style="background:${b.materiaColor};color:#fff;border-color:${b.materiaColor}">
+                    Abrir ↗
+                   </a>`
+                : `<span style="font-size:11px;color:#94a3b8;font-style:italic">Sin enlace — agregá la URL en data.js</span>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>

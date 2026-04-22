@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EstudioFING — Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav id="sidebar"></nav>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Dashboard</div>
+        <div class="topbar-sub" id="topbar-sub">Ingeniería en Computación · FING UdelaR</div>
+      </div>
+      <div class="topbar-right">
+        <span class="date-badge" id="current-date"></span>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Stats globales -->
+      <div class="stats-row" id="stats-row"></div>
+
+      <!-- Tarjetas por materia -->
+      <div class="section-title">Mis Materias</div>
+      <div class="dashboard-grid" id="dashboard-grid"></div>
+    </div>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    renderSidebar('dashboard');
+
+    // Fecha
+    document.getElementById('current-date').textContent =
+      new Date().toLocaleDateString('es-UY', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+        .replace(/^./, c => c.toUpperCase());
+
+    // Stats globales
+    const totalTextos    = getTextosTotales();
+    const totalResumidos = getResumidosTotales();
+    const totalResumenes = getResumenesTotales();
+    const totalBiblio    = DATA.materias.reduce((s,m) => s + (m.bibliografia||[]).length, 0);
+
+    document.getElementById('stats-row').innerHTML = [
+      { value: DATA.materias.length, label: 'Materias',     color: '#2563eb' },
+      { value: totalTextos,          label: 'Textos totales', color: '#7c3aed' },
+      { value: totalResumidos,       label: 'Resumidos',     color: '#059669' },
+      { value: totalBiblio,          label: 'Bibliografía',  color: '#d97706' },
+    ].map(s => `
+      <div class="stat-card">
+        <div class="stat-card-value" style="color:${s.color}">${s.value}</div>
+        <div class="stat-card-label">${s.label}</div>
+      </div>
+    `).join('');
+
+    // Tarjetas de materias
+    const grid = document.getElementById('dashboard-grid');
+    grid.innerHTML = DATA.materias.map(m => {
+      const textos   = m.textos || [];
+      const resumidos = textos.filter(t => t.resumido).length;
+      const pct = textos.length ? Math.round(resumidos / textos.length * 100) : 0;
+      const resumenes = (m.resumenes || []).length;
+
+      return `
+        <div class="materia-card">
+          <div class="materia-card-top">
+            <div class="materia-icon" style="background:${m.colorLight};color:${m.color}">${m.icono}</div>
+            <div class="materia-info">
+              <div class="materia-nombre">${m.nombre}</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${m.abrev}</div>
+            </div>
+          </div>
+
+          <div style="padding:12px 20px;display:flex;gap:20px;border-bottom:1px solid var(--border)">
+            <div class="stat-item">
+              <div class="stat-value" style="color:${m.color}">${textos.length}</div>
+              <div class="stat-label">textos</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" style="color:${m.color}">${resumidos}</div>
+              <div class="stat-label">resumidos</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" style="color:${m.color}">${resumenes}</div>
+              <div class="stat-label">resúmenes</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" style="color:${m.color}">${(m.flashcards||[]).length}</div>
+              <div class="stat-label">flashcards</div>
+            </div>
+          </div>
+
+          <div class="materia-progress">
+            <div class="progress-info">
+              <span>Progreso de resúmenes</span>
+              <span style="font-weight:600;color:${m.color}">${pct}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${pct}%;background:${m.color}"></div>
+            </div>
+          </div>
+
+          <div class="materia-actions">
+            <a href="${m.links.campus}" target="_blank" class="btn btn-outline btn-sm">
+              🏫 Campus
+            </a>
+            <a href="${m.links.clases}" target="_blank" class="btn btn-outline btn-sm">
+              🎬 Clases
+            </a>
+            <a href="resumenes.html?materia=${m.id}" class="btn btn-sm" style="background:${m.colorLight};color:${m.color};border-color:${m.color}30">
+              📝 Resúmenes
+            </a>
+            <a href="estudio.html?materia=${m.id}" class="btn btn-sm" style="background:${m.colorLight};color:${m.color};border-color:${m.color}30">
+              🧠 Estudiar
+            </a>
+          </div>
+        </div>
+      `;
+    }).join('');
+  </script>
+</body>
+</html>

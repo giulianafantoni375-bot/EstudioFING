@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EstudioFING — Resúmenes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav id="sidebar"></nav>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Resúmenes</div>
+        <div class="topbar-sub">Todos tus resúmenes en un solo lugar</div>
+      </div>
+      <div class="topbar-right">
+        <span class="date-badge" id="current-date"></span>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="inbox-toolbar">
+        <!-- Búsqueda -->
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Buscar resúmenes...">
+        </div>
+
+        <!-- Filtros de estado -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-filter="todos">Todos</button>
+          <button class="filter-tab" data-filter="noleido">No leídos</button>
+          <button class="filter-tab" data-filter="destacado">Destacados ⭐</button>
+        </div>
+
+        <!-- Filtro por materia -->
+        <select class="form-select" id="materia-filter">
+          <option value="todas">Todas las materias</option>
+        </select>
+
+        <!-- Contador -->
+        <span id="count-badge" style="margin-left:auto;font-size:12px;color:var(--text-muted);font-weight:500"></span>
+      </div>
+
+      <div id="inbox-list" class="inbox-list"></div>
+    </div>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    renderSidebar('resumenes');
+    document.getElementById('current-date').textContent =
+      new Date().toLocaleDateString('es-UY', { day:'2-digit', month:'short', year:'numeric' });
+
+    // Poblar filtro de materias
+    const mSel = document.getElementById('materia-filter');
+    DATA.materias.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id; opt.textContent = m.abrev;
+      mSel.appendChild(opt);
+    });
+
+    // Preseleccionar materia si viene por URL
+    const urlParam = new URLSearchParams(window.location.search).get('materia');
+    if (urlParam) mSel.value = urlParam;
+
+    let currentFilter = 'todos';
+    let searchTerm    = '';
+    let materiaFiltro = mSel.value;
+
+    function renderInbox() {
+      const state = getResumenState();
+      const resumenes = getResumenesAll();
+      const list = document.getElementById('inbox-list');
+
+      const filtered = resumenes.filter(r => {
+        const s = state[r.id] || {};
+        const leido     = !!s.leido;
+        const destacado = !!s.destacado;
+
+        if (materiaFiltro !== 'todas' && r.materiaId !== materiaFiltro) return false;
+        if (currentFilter === 'noleido' && leido) return false;
+        if (currentFilter === 'destacado' && !destacado) return false;
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          const match = r.titulo.toLowerCase().includes(term)
+            || (r.contenido||'').toLowerCase().includes(term)
+            || (r.etiquetas||[]).some(t => t.toLowerCase().includes(term));
+          if (!match) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('count-badge').textContent = `${filtered.length} resúmen${filtered.length !== 1 ? 'es' : ''}`;
+
+      if (!filtered.length) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div class="empty-state-title">Sin resultados</div>
+            <div class="empty-state-text">No hay resúmenes que coincidan con los filtros aplicados.</div>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(r => {
+        const s = state[r.id] || {};
+        const leido     = !!s.leido;
+        const destacado = !!s.destacado;
+
+        return `
+          <div class="inbox-item ${leido ? 'read' : 'unread'} ${destacado ? 'highlighted' : ''}" data-id="${r.id}">
+            <div class="inbox-check" title="${leido ? 'Marcar no leído' : 'Marcar leído'}"
+              onclick="toggleLeido('${r.id}', event)"></div>
+            <div class="inbox-body">
+              <div class="inbox-header">
+                <span class="inbox-title">${r.titulo}</span>
+                <span class="badge" style="background:${r.materiaColor}15;color:${r.materiaColor};border:1px solid ${r.materiaColor}30;font-size:10px;padding:2px 8px;border-radius:20px">
+                  ${r.materiaNombre}
+                </span>
+                <span class="inbox-date">${formatFecha(r.fecha)}</span>
+              </div>
+              <div class="inbox-preview">${(r.contenido||'').slice(0,120)}...</div>
+              <div class="inbox-tags">
+                ${(r.etiquetas||[]).map(t => `<span class="inbox-tag">${t}</span>`).join('')}
+              </div>
+            </div>
+            <span class="inbox-star" title="${destacado ? 'Quitar destacado' : 'Destacar'}"
+              onclick="toggleDestacado('${r.id}', event)">★</span>
+          </div>
+          <div class="inbox-expanded" id="exp-${r.id}">
+            <div class="inbox-content-text">${r.contenido || ''}</div>
+          </div>
+        `;
+      }).join('');
+
+      // Click para expandir
+      list.querySelectorAll('.inbox-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+          if (e.target.classList.contains('inbox-check') || e.target.classList.contains('inbox-star')) return;
+          const id = this.dataset.id;
+          const exp = document.getElementById('exp-' + id);
+          exp.classList.toggle('open');
+          // Marcar como leído al abrir
+          const st = getResumenState()[id] || {};
+          if (!st.leido) { setResumenState(id, 'leido', true); renderInbox(); }
+        });
+      });
+    }
+
+    function toggleLeido(id, e) {
+      e.stopPropagation();
+      const s = getResumenState()[id] || {};
+      setResumenState(id, 'leido', !s.leido);
+      renderInbox();
+    }
+
+    function toggleDestacado(id, e) {
+      e.stopPropagation();
+      const s = getResumenState()[id] || {};
+      setResumenState(id, 'destacado', !s.destacado);
+      renderInbox();
+    }
+
+    // Eventos
+    document.getElementById('search-input').addEventListener('input', function() {
+      searchTerm = this.value.trim();
+      renderInbox();
+    });
+
+    document.querySelectorAll('.filter-tab').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.dataset.filter;
+        renderInbox();
+      });
+    });
+
+    mSel.addEventListener('change', function() {
+      materiaFiltro = this.value;
+      renderInbox();
+    });
+
+    renderInbox();
+  </script>
+</body>
+</html>
