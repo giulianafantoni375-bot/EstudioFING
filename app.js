@@ -2,6 +2,40 @@
 // app.js — Utilidades compartidas de EstudioFING
 // ============================================================
 
+// ── Auth ──────────────────────────────────────────────────────
+// SHA-256 de la contraseña. Para cambiarla:
+//   1. Abrí la consola del navegador y ejecutá:
+//      crypto.subtle.digest('SHA-256', new TextEncoder().encode('TU_NUEVA_CONTRASEÑA'))
+//        .then(b => console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')))
+//   2. Reemplazá el valor de PASS_HASH con el resultado
+const PASS_HASH = '38f3fda64404128c691805edc536d99f1a1721acb30cfa44d2172598d1280836';
+
+function checkAuth() {
+  if (sessionStorage.getItem('estudio_auth') !== PASS_HASH) {
+    window.location.replace('login.html');
+  }
+}
+
+async function hashStr(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function doLogin(password) {
+  const hash = await hashStr(password);
+  if (hash === PASS_HASH) {
+    sessionStorage.setItem('estudio_auth', hash);
+    window.location.replace('index.html');
+    return true;
+  }
+  return false;
+}
+
+function logout() {
+  sessionStorage.removeItem('estudio_auth');
+  window.location.replace('login.html');
+}
+
 // ── Sidebar ──────────────────────────────────────────────────
 function renderSidebar(activePage) {
   const pages = [
@@ -37,7 +71,17 @@ function renderSidebar(activePage) {
     </div>
     <div class="nav-section">Navegación</div>
     <ul class="nav-links">${navHTML}</ul>
-    <div class="sidebar-footer">${cap(today)}</div>
+    <div class="sidebar-footer">
+      <div style="margin-bottom:8px">${cap(today)}</div>
+      <button onclick="logout()" style="
+        width:100%;padding:7px;border-radius:6px;border:1px solid #334155;
+        background:transparent;color:#94a3b8;font-size:12px;font-weight:600;
+        cursor:pointer;transition:all .15s;
+      " onmouseover="this.style.background='#1e293b';this.style.color='#f1f5f9'"
+         onmouseout="this.style.background='transparent';this.style.color='#94a3b8'">
+        Cerrar sesión
+      </button>
+    </div>
   `;
 }
 

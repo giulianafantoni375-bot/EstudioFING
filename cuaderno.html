@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EstudioFING — Cuaderno</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>checkAuth();</script>
   <style>
     .cuaderno-toolbar {
       display: flex;
@@ -213,8 +216,6 @@
     </div>
   </main>
 
-  <script src="data.js"></script>
-  <script src="app.js"></script>
   <script>
     renderSidebar('cuaderno');
     document.getElementById('current-date').textContent =

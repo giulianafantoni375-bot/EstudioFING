@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EstudioFING — Estudio</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>checkAuth();</script>
 </head>
 <body>
   <nav id="sidebar"></nav>
@@ -46,8 +49,6 @@
     </div>
   </main>
 
-  <script src="data.js"></script>
-  <script src="app.js"></script>
   <script>
     renderSidebar('estudio');
     document.getElementById('current-date').textContent =
