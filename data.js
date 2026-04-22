@@ -138,6 +138,12 @@ const DATA = {
             { titulo: "Teorema de Gauss (Divergencia)", items: ["∯_∂E F·dS = ∭_E div F dV", "Flujo neto = integral de la divergencia", "Normal exterior en la superficie"] }
           ]
         }
+      ],
+      cuaderno: [
+        // Ejemplo — reemplazá con tus archivos reales
+        { id: "cc1", categoria: "teorico",  fecha: "2026-03-10", titulo: "Clase 1 — Integrales Dobles",          archivo: "./CDIVV/Cuaderno/Teorico/clase1-integrales-dobles.pdf" },
+        { id: "cc2", categoria: "teorico",  fecha: "2026-03-17", titulo: "Clase 2 — Cambio de Variables",        archivo: "./CDIVV/Cuaderno/Teorico/clase2-cambio-variables.pdf" },
+        { id: "cc3", categoria: "practico", fecha: "2026-03-15", titulo: "Práctica 1 — Integrales Múltiples",    archivo: "./CDIVV/Cuaderno/Practico/practica1.pdf" },
       ]
     },
 
@@ -263,6 +269,11 @@ const DATA = {
             { titulo: "Paso 4: Construir P y D", items: ["P = [v₁ | v₂ | ... | vₙ] (vectores propios en columnas)", "D = diag(λ₁, λ₂, ..., λₙ) (valores propios en diagonal)", "Verificar: A = PDP⁻¹"] }
           ]
         }
+      ],
+      cuaderno: [
+        { id: "ac1", categoria: "teorico",  fecha: "2026-03-09", titulo: "Clase 1 — Espacios Vectoriales",       archivo: "./GAL 2/Cuaderno/Teorico/clase1-espacios-vectoriales.pdf" },
+        { id: "ac2", categoria: "teorico",  fecha: "2026-03-16", titulo: "Clase 2 — Transformaciones Lineales",  archivo: "./GAL 2/Cuaderno/Teorico/clase2-transformaciones.pdf" },
+        { id: "ac3", categoria: "practico", fecha: "2026-03-18", titulo: "Práctica 1 — Subespacios y Bases",     archivo: "./GAL 2/Cuaderno/Practico/practica1.pdf" },
       ]
     },
 
@@ -389,6 +400,11 @@ const DATA = {
             { titulo: "Tabla Hash", items: ["Búsqueda: O(1) promedio", "Inserción: O(1) promedio", "Sin orden garantizado", "Depende de función hash y factor de carga"] }
           ]
         }
+      ],
+      cuaderno: [
+        { id: "pc1", categoria: "teorico",  fecha: "2026-03-09", titulo: "Clase 1 — TADs",                      archivo: "./P 2/Cuaderno/Teorico/clase1-tads.pdf" },
+        { id: "pc2", categoria: "teorico",  fecha: "2026-03-16", titulo: "Clase 2 — Recursividad y Big-O",      archivo: "./P 2/Cuaderno/Teorico/clase2-recursividad.pdf" },
+        { id: "pc3", categoria: "practico", fecha: "2026-03-18", titulo: "Práctica 1 — Listas y Pilas",         archivo: "./P 2/Cuaderno/Practico/practica1.pdf" },
       ]
     },
 
@@ -507,6 +523,11 @@ const DATA = {
             { titulo: "Grafos Bipartitos", items: ["Vértices en dos grupos A y B", "Aristas solo entre grupos distintos", "Es bipartito ⟺ no tiene ciclos de longitud impar", "Matching perfecto: todos los vértices apareados"] }
           ]
         }
+      ],
+      cuaderno: [
+        { id: "dc1", categoria: "teorico",  fecha: "2026-03-10", titulo: "Clase 1 — Grafos: Definiciones",       archivo: "./MD 2/Cuaderno/Teorico/clase1-grafos.pdf" },
+        { id: "dc2", categoria: "teorico",  fecha: "2026-03-17", titulo: "Clase 2 — Caminos y Conexión",         archivo: "./MD 2/Cuaderno/Teorico/clase2-caminos.pdf" },
+        { id: "dc3", categoria: "practico", fecha: "2026-03-18", titulo: "Práctica 1 — Propiedades de Grafos",   archivo: "./MD 2/Cuaderno/Practico/practica1.pdf" },
       ]
     }
   ]

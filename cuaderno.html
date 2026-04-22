@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EstudioFING — Cuaderno</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .cuaderno-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .categoria-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .categoria-tab {
+      padding: 7px 18px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      color: var(--text-muted);
+    }
+
+    .categoria-tab[data-cat="todos"].active   { background: #0f172a; color: #fff; border-color: #0f172a; }
+    .categoria-tab[data-cat="teorico"].active  { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .categoria-tab[data-cat="practico"].active { background: #059669; color: #fff; border-color: #059669; }
+    .categoria-tab:hover:not(.active)          { background: var(--bg); color: var(--text); }
+
+    .cuaderno-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .nota-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow .2s, transform .2s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nota-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .nota-card-stripe {
+      height: 4px;
+      width: 100%;
+    }
+
+    .nota-card-body {
+      padding: 16px 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nota-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .nota-categoria-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .nota-categoria-badge.teorico  { background: #eff6ff; color: #1d4ed8; }
+    .nota-categoria-badge.practico { background: #ecfdf5; color: #065f46; }
+
+    .nota-fecha {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .nota-titulo {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--text);
+    }
+
+    .nota-materia {
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .nota-card-footer {
+      padding: 10px 18px 14px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-abrir {
+      flex: 1;
+      justify-content: center;
+      color: #fff;
+      border: none;
+    }
+
+    /* Materia tabs más compactos */
+    .materia-filter-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .mf-tab {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      color: var(--text-muted);
+    }
+
+    .mf-tab.active {
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .mf-tab:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+    .section-group {
+      margin-bottom: 28px;
+    }
+
+    .section-group-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-group-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+  </style>
+</head>
+<body>
+  <nav id="sidebar"></nav>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Cuaderno</div>
+        <div class="topbar-sub">Notas de teórico y práctico exportadas desde GoodNotes</div>
+      </div>
+      <div class="topbar-right">
+        <span id="cuad-count" style="font-size:12px;color:var(--text-muted);font-weight:500"></span>
+        <span class="date-badge" id="current-date"></span>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Filtros -->
+      <div class="cuaderno-toolbar">
+        <!-- Búsqueda -->
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Buscar por título o tema...">
+        </div>
+
+        <!-- Categoría -->
+        <div class="categoria-tabs">
+          <button class="categoria-tab active" data-cat="todos">Todos</button>
+          <button class="categoria-tab" data-cat="teorico">📘 Teórico</button>
+          <button class="categoria-tab" data-cat="practico">📗 Práctico</button>
+        </div>
+      </div>
+
+      <!-- Tabs de materias -->
+      <div class="materia-filter-tabs" id="materia-tabs"></div>
+
+      <!-- Grid de notas -->
+      <div id="cuaderno-content"></div>
+    </div>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    renderSidebar('cuaderno');
+    document.getElementById('current-date').textContent =
+      new Date().toLocaleDateString('es-UY', { day:'2-digit', month:'short', year:'numeric' });
+
+    let activeMateriaId = 'todas';
+    let activeCat       = 'todos';
+    let searchTerm      = '';
+
+    // ── Tabs de materias ────────────────────────────────────────
+    const tabsEl = document.getElementById('materia-tabs');
+
+    function makeTab(id, label, color) {
+      const btn = document.createElement('button');
+      btn.className = 'mf-tab' + (id === activeMateriaId ? ' active' : '');
+      btn.dataset.materia = id;
+      btn.textContent = label;
+      if (id === activeMateriaId) {
+        btn.style.background   = color || '#475569';
+        btn.style.borderColor  = color || '#475569';
+      }
+      btn.addEventListener('click', () => {
+        tabsEl.querySelectorAll('.mf-tab').forEach(b => {
+          b.classList.remove('active');
+          b.style.background  = '';
+          b.style.borderColor = '';
+        });
+        btn.classList.add('active');
+        if (color) { btn.style.background = color; btn.style.borderColor = color; }
+        else        { btn.style.background = '#475569'; btn.style.borderColor = '#475569'; }
+        activeMateriaId = id;
+        render();
+      });
+      return btn;
+    }
+
+    tabsEl.appendChild(makeTab('todas', 'Todas', '#475569'));
+    DATA.materias.forEach(m => tabsEl.appendChild(makeTab(m.id, m.abrev, m.color)));
+
+    // Activar estilo del tab "Todas" inicial
+    tabsEl.querySelector('[data-materia="todas"]').style.background   = '#475569';
+    tabsEl.querySelector('[data-materia="todas"]').style.borderColor  = '#475569';
+    tabsEl.querySelector('[data-materia="todas"]').style.color        = '#fff';
+
+    // ── Filtros de categoría ─────────────────────────────────────
+    document.querySelectorAll('.categoria-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.categoria-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeCat = btn.dataset.cat;
+        render();
+      });
+    });
+
+    // ── Búsqueda ─────────────────────────────────────────────────
+    document.getElementById('search-input').addEventListener('input', function() {
+      searchTerm = this.value.trim().toLowerCase();
+      render();
+    });
+
+    // ── Pre-selección por URL ─────────────────────────────────────
+    const urlParam = new URLSearchParams(window.location.search).get('materia');
+    if (urlParam && DATA.materias.find(m => m.id === urlParam)) {
+      activeMateriaId = urlParam;
+      tabsEl.querySelectorAll('.mf-tab').forEach(b => {
+        b.classList.remove('active');
+        b.style.background  = '';
+        b.style.borderColor = '';
+        b.style.color       = '';
+      });
+      const btn = tabsEl.querySelector(`[data-materia="${urlParam}"]`);
+      const m   = DATA.materias.find(m => m.id === urlParam);
+      if (btn && m) {
+        btn.classList.add('active');
+        btn.style.background  = m.color;
+        btn.style.borderColor = m.color;
+        btn.style.color       = '#fff';
+      }
+    }
+
+    // ── Render ────────────────────────────────────────────────────
+    function getAllNotas() {
+      const all = [];
+      DATA.materias.forEach(m => {
+        (m.cuaderno || []).forEach(n => {
+          all.push(Object.assign({}, n, {
+            materiaId:     m.id,
+            materiaNombre: m.abrev,
+            materiaColor:  m.color,
+            materiaLight:  m.colorLight,
+          }));
+        });
+      });
+      all.sort((a, b) => b.fecha.localeCompare(a.fecha));
+      return all;
+    }
+
+    function render() {
+      const notas = getAllNotas().filter(n => {
+        if (activeMateriaId !== 'todas' && n.materiaId !== activeMateriaId) return false;
+        if (activeCat !== 'todos' && n.categoria !== activeCat) return false;
+        if (searchTerm && !n.titulo.toLowerCase().includes(searchTerm)) return false;
+        return true;
+      });
+
+      document.getElementById('cuad-count').textContent =
+        `${notas.length} nota${notas.length !== 1 ? 's' : ''}`;
+
+      const container = document.getElementById('cuaderno-content');
+
+      if (!notas.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📓</div>
+            <div class="empty-state-title">Sin notas</div>
+            <div class="empty-state-text">No hay notas que coincidan con los filtros. Agregá entradas en data.js.</div>
+          </div>`;
+        return;
+      }
+
+      // Si está todo sin filtrar por materia, agrupar por materia
+      if (activeMateriaId === 'todas' && activeCat !== 'todos') {
+        renderPlano(notas, container);
+      } else if (activeMateriaId === 'todas') {
+        renderAgrupado(notas, container);
+      } else {
+        // Filtrado por materia específica: agrupar por categoría
+        renderPorCategoria(notas, container);
+      }
+    }
+
+    function renderPlano(notas, container) {
+      container.innerHTML = `<div class="cuaderno-grid">${notas.map(cardHTML).join('')}</div>`;
+    }
+
+    function renderAgrupado(notas, container) {
+      const grupos = {};
+      notas.forEach(n => {
+        if (!grupos[n.materiaId]) grupos[n.materiaId] = { nombre: n.materiaNombre, color: n.materiaColor, notas: [] };
+        grupos[n.materiaId].notas.push(n);
+      });
+
+      container.innerHTML = Object.values(grupos).map(g => `
+        <div class="section-group">
+          <div class="section-group-title" style="color:${g.color}">${g.nombre}</div>
+          <div class="cuaderno-grid">${g.notas.map(cardHTML).join('')}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderPorCategoria(notas, container) {
+      const teorico  = notas.filter(n => n.categoria === 'teorico');
+      const practico = notas.filter(n => n.categoria === 'practico');
+
+      let html = '';
+      if (teorico.length) html += `
+        <div class="section-group">
+          <div class="section-group-title" style="color:#2563eb">📘 Teórico</div>
+          <div class="cuaderno-grid">${teorico.map(cardHTML).join('')}</div>
+        </div>`;
+      if (practico.length) html += `
+        <div class="section-group">
+          <div class="section-group-title" style="color:#059669">📗 Práctico</div>
+          <div class="cuaderno-grid">${practico.map(cardHTML).join('')}</div>
+        </div>`;
+
+      container.innerHTML = html || `<div class="cuaderno-grid">${notas.map(cardHTML).join('')}</div>`;
+    }
+
+    function cardHTML(n) {
+      const catLabel = n.categoria === 'teorico' ? 'Teórico' : 'Práctico';
+      const hasFile  = n.archivo && n.archivo.trim() !== '';
+
+      return `
+        <div class="nota-card">
+          <div class="nota-card-stripe" style="background:${n.materiaColor}"></div>
+          <div class="nota-card-body">
+            <div class="nota-card-header">
+              <span class="nota-categoria-badge ${n.categoria}">${catLabel}</span>
+              <span class="nota-fecha">${formatFecha(n.fecha)}</span>
+            </div>
+            <div class="nota-titulo">${n.titulo}</div>
+            <div class="nota-materia" style="color:${n.materiaColor}">${n.materiaNombre}</div>
+          </div>
+          <div class="nota-card-footer">
+            ${hasFile
+              ? `<a href="${n.archivo}" target="_blank" class="btn btn-abrir btn-sm"
+                   style="background:${n.materiaColor}">
+                   📄 Abrir PDF
+                 </a>`
+              : `<span style="font-size:11.5px;color:#94a3b8;font-style:italic;padding:4px 0">
+                   Sin archivo — completá la ruta en data.js
+                 </span>`
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    render();
+  </script>
+</body>
+</html>

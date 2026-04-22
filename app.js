@@ -7,6 +7,7 @@ function renderSidebar(activePage) {
   const pages = [
     { id: 'dashboard',   href: 'index.html',       icon: '⊞', label: 'Dashboard' },
     { id: 'resumenes',   href: 'resumenes.html',    icon: '✉', label: 'Resúmenes' },
+    { id: 'cuaderno',    href: 'cuaderno.html',     icon: '📓', label: 'Cuaderno' },
     { id: 'bibliografia',href: 'bibliografia.html', icon: '📚', label: 'Bibliografía' },
     { id: 'estudio',     href: 'estudio.html',      icon: '🧠', label: 'Estudio' },
   ];
