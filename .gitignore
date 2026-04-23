@@ -1,0 +1,10 @@
+# Archivos de Windows
+*.Zone.Identifier
+Thumbs.db
+
+# Descargas incompletas
+*.crdownload
+*.part
+
+# PDFs — se linkean desde Google Drive en data.js
+*.pdf
