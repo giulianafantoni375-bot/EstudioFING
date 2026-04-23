@@ -1,4 +1,4 @@
-// Generado automáticamente por sync_campus.py — 23/04/2026 16:23
+// Generado automáticamente por sync_campus.py — 23/04/2026 16:30
 // No editar a mano. Ejecutá: python sync_campus.py
 const NOTIFICATIONS = [
   {
@@ -14,4 +14,4 @@ const NOTIFICATIONS = [
     "materia": "General"
   }
 ];
-const NOTIFICATIONS_UPDATED = "23/04/2026 16:23";
+const NOTIFICATIONS_UPDATED = "23/04/2026 16:30";
