@@ -8,6 +8,7 @@
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script>checkAuth();</script>
+  <script src="notifications.js"></script>
 </head>
 <body>
   <nav id="sidebar"></nav>
@@ -24,6 +25,9 @@
     </header>
 
     <div class="content">
+      <!-- Notificaciones del campus -->
+      <div id="notif-panel"></div>
+
       <!-- Stats globales -->
       <div class="stats-row" id="stats-row"></div>
 
@@ -35,6 +39,57 @@
 
   <script>
     renderSidebar('dashboard');
+
+    // Panel de notificaciones del campus
+    (function() {
+      const notifs = typeof NOTIFICATIONS !== 'undefined' ? NOTIFICATIONS : [];
+      const panel  = document.getElementById('notif-panel');
+      if (!notifs.length) return;
+
+      const colores = {
+        danger:  { bg: '#fef2f2', border: '#fca5a5', text: '#991b1b', dot: '#ef4444' },
+        warning: { bg: '#fffbeb', border: '#fde68a', text: '#92400e', dot: '#f59e0b' },
+        info:    { bg: '#eff6ff', border: '#93c5fd', text: '#1e40af', dot: '#3b82f6' },
+        success: { bg: '#f0fdf4', border: '#86efac', text: '#166534', dot: '#22c55e' },
+      };
+
+      const danger  = notifs.filter(n => n.tipo === 'danger').length;
+      const warning = notifs.filter(n => n.tipo === 'warning').length;
+
+      panel.innerHTML = `
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:15px;font-weight:700">
+              Notificaciones del Campus
+              ${danger ? `<span style="background:#ef4444;color:#fff;font-size:11px;padding:2px 8px;border-radius:99px;margin-left:8px">${danger} urgente${danger>1?'s':''}</span>` : ''}
+            </div>
+            <span style="font-size:11px;color:var(--text-muted)">
+              ${typeof NOTIFICATIONS_UPDATED !== 'undefined' && NOTIFICATIONS_UPDATED
+                ? 'Actualizado: ' + NOTIFICATIONS_UPDATED
+                : 'Ejecutá sync_campus.py para actualizar'}
+            </span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${notifs.map(n => {
+              const c = colores[n.tipo] || colores.info;
+              return `
+                <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
+                            background:${c.bg};border:1px solid ${c.border};border-radius:8px">
+                  <div style="width:8px;height:8px;border-radius:50%;background:${c.dot};
+                              margin-top:5px;flex-shrink:0"></div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;color:${c.text}">${n.titulo}</div>
+                    <div style="font-size:12px;color:${c.text};opacity:.8;margin-top:2px">${n.mensaje}</div>
+                  </div>
+                  <span style="font-size:11px;font-weight:600;color:${c.text};opacity:.7;
+                               white-space:nowrap;flex-shrink:0">${n.materia}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    })();
 
     // Fecha
     document.getElementById('current-date').textContent =

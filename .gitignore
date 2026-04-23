@@ -8,3 +8,9 @@ Thumbs.db
 
 # PDFs — se linkean desde Google Drive en data.js
 *.pdf
+
+# Credenciales del campus (nunca subir)
+campus_config.json
+
+# Cache interno del script
+.grades_cache.json
